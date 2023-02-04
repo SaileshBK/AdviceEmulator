@@ -10,9 +10,9 @@ using Newtonsoft.Json;
 
 namespace AdviceEmulator
 {
-    public static class Function1
+    public static class AdviceFunction
     {
-        [FunctionName("Function1")]
+        [FunctionName("DailyAdviceFunction")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
             ILogger log)
