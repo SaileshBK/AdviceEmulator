@@ -7,29 +7,38 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using AdviceEmulator.Service;
 
 namespace AdviceEmulator
 {
-    public static class AdviceFunction
+    public class AdviceFunction
     {
+        private IAdviceService _adviceService;
+        public AdviceFunction(IAdviceService adviceService)
+        {
+            _adviceService = adviceService;
+
+        }
+
         [FunctionName("DailyAdviceFunction")]
-        public static async Task<IActionResult> Run(
+        public async Task DailyAdviceFunctionAsync([TimerTrigger("0 */5 * * * *")] TimerInfo myTimer, ILogger log)
+        {
+            log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
+            var response = await _adviceService.GetDailyAdvie();
+        }
+
+        [FunctionName("DailyAdviceFunctionTrigger")]
+        public async Task<IActionResult> DailyAdviceFunctionTriggerAsync(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
             ILogger log)
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
 
-            string name = req.Query["name"];
+            var response = await _adviceService.GetDailyAdvie();
 
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            dynamic data = JsonConvert.DeserializeObject(requestBody);
-            name = name ?? data?.name;
-
-            string responseMessage = string.IsNullOrEmpty(name)
-                ? "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response."
-                : $"Hello, {name}. This HTTP triggered function executed successfully.";
-
-            return new OkObjectResult(responseMessage);
+            return new OkObjectResult(response);
         }
+
+        
     }
 }
